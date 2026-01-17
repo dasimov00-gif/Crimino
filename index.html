@@ -1,0 +1,1283 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>VRAG / SORAG - Calculateur</title>
+  <style>
+    :root{
+      --bg:#0b0c10;
+      --card:#12141b;
+      --muted:#a8b0c0;
+      --text:#e9edf6;
+      --line:#232836;
+      --accent:#7aa2ff;
+      --good:#5ee6a8;
+      --warn:#ffd166;
+      --bad:#ff6b6b;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      background: radial-gradient(1200px 700px at 20% 0%, #151a2a 0%, var(--bg) 55%);
+      color:var(--text);
+      line-height:1.35;
+    }
+    header{
+      position:sticky; top:0; z-index:10;
+      backdrop-filter: blur(10px);
+      background: rgba(11,12,16,.7);
+      border-bottom:1px solid var(--line);
+    }
+    .wrap{max-width:1100px;margin:0 auto;padding:14px 16px}
+    .topbar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;justify-content:space-between}
+    .brand{display:flex;gap:10px;align-items:center}
+    .pill{
+      font-size:12px;
+      padding:4px 10px;
+      border:1px solid var(--line);
+      border-radius:999px;
+      color:var(--muted);
+    }
+    nav{display:flex;gap:8px;flex-wrap:wrap}
+    button.tab{
+      cursor:pointer;
+      border:1px solid var(--line);
+      background: rgba(18,20,27,.7);
+      color:var(--text);
+      padding:8px 12px;
+      border-radius:12px;
+      transition: .15s transform, .15s border-color;
+      font-weight:600;
+    }
+    button.tab:hover{transform:translateY(-1px); border-color:#2f3a55;}
+    button.tab.active{border-color:var(--accent); box-shadow:0 0 0 2px rgba(122,162,255,.15) inset}
+    main{padding:18px 0 40px}
+    .grid{display:grid;grid-template-columns: 1fr;gap:14px}
+    @media (min-width: 980px){
+      .grid.two{grid-template-columns: 1.15fr .85fr}
+    }
+    .card{
+      background: rgba(18,20,27,.88);
+      border:1px solid var(--line);
+      border-radius:18px;
+      padding:14px;
+      box-shadow: 0 8px 24px rgba(0,0,0,.25);
+    }
+    h1{font-size:20px;margin:0 0 8px}
+    h2{font-size:16px;margin:0 0 8px}
+    h3{font-size:14px;margin:14px 0 8px;color:#d6dcff}
+    p{margin:8px 0;color:var(--muted)}
+    .note{
+      border-left:3px solid var(--accent);
+      padding:10px 12px;
+      background: rgba(122,162,255,.08);
+      border-radius:12px;
+      color:#cbd6ff;
+    }
+    .row{display:grid;grid-template-columns: 1fr;gap:10px;margin:10px 0}
+    @media (min-width: 740px){
+      .row.two{grid-template-columns: 1fr 1fr}
+      .row.three{grid-template-columns: 1fr 1fr 1fr}
+    }
+    label{display:block;font-size:13px;color:#cfd6ee;margin:0 0 6px}
+    select,input[type="number"],input[type="date"],textarea{
+      width:100%;
+      background:#0f1118;
+      border:1px solid var(--line);
+      color:var(--text);
+      padding:10px 10px;
+      border-radius:12px;
+      outline:none;
+    }
+    select:focus,input:focus,textarea:focus{border-color:var(--accent); box-shadow:0 0 0 3px rgba(122,162,255,.14)}
+    textarea{min-height:68px;resize:vertical}
+    .inline{
+      display:flex;gap:10px;flex-wrap:wrap;align-items:center
+    }
+    .chip{
+      font-size:12px;
+      padding:6px 10px;
+      border-radius:999px;
+      border:1px solid var(--line);
+      color:var(--muted);
+      background: rgba(0,0,0,.2);
+    }
+    .metric{
+      display:flex;flex-direction:column;gap:6px;
+      padding:12px;
+      border-radius:16px;
+      border:1px solid var(--line);
+      background: rgba(0,0,0,.18);
+    }
+    .metric .big{font-size:28px;font-weight:800;letter-spacing:.2px}
+    .metric .sub{color:var(--muted);font-size:12px}
+    .badge{
+      display:inline-block;
+      padding:5px 10px;
+      border-radius:999px;
+      font-weight:800;
+      font-size:12px;
+      letter-spacing:.2px;
+      border:1px solid var(--line);
+      background: rgba(0,0,0,.25);
+    }
+    .b-low{color:var(--good); border-color:rgba(94,230,168,.25)}
+    .b-med{color:var(--warn); border-color:rgba(255,209,102,.25)}
+    .b-high{color:var(--bad); border-color:rgba(255,107,107,.25)}
+    .btn{
+      cursor:pointer;
+      border:1px solid var(--line);
+      background:#0f1118;
+      color:var(--text);
+      padding:10px 12px;
+      border-radius:12px;
+      font-weight:700;
+    }
+    .btn:hover{border-color:#2f3a55}
+    .btn.primary{border-color:rgba(122,162,255,.55); background: rgba(122,162,255,.12)}
+    .small{font-size:12px;color:var(--muted)}
+    .divider{height:1px;background:var(--line);margin:12px 0}
+    .hidden{display:none !important}
+    .table{
+      width:100%;
+      border-collapse: collapse;
+      overflow:hidden;
+      border-radius:14px;
+      border:1px solid var(--line);
+    }
+    .table th,.table td{
+      padding:10px 10px;
+      border-bottom:1px solid var(--line);
+      font-size:13px;
+      vertical-align:top;
+    }
+    .table th{color:#dbe2ff;text-align:left;background:rgba(0,0,0,.18)}
+    .table tr:last-child td{border-bottom:none}
+    .foot{
+      margin-top:10px;
+      color:var(--muted);
+      font-size:12px;
+    }
+    .checkboxes{display:grid;grid-template-columns: 1fr;gap:6px}
+    @media (min-width: 560px){ .checkboxes{grid-template-columns: 1fr 1fr} }
+    .ck{
+      display:flex;gap:10px;align-items:flex-start;
+      padding:10px 10px;
+      border:1px solid var(--line);
+      border-radius:12px;
+      background: rgba(0,0,0,.18);
+    }
+    .ck input{margin-top:3px}
+    .muted{color:var(--muted)}
+  </style>
+</head>
+
+<body>
+<header>
+  <div class="wrap">
+    <div class="topbar">
+      <div class="brand">
+        <div style="font-weight:900">VRAG / SORAG</div>
+        <span class="pill">Calculateur statique (GitHub Pages)</span>
+      </div>
+      <nav>
+        <button class="tab" data-view="vrag">VRAG</button>
+        <button class="tab" data-view="sorag">SORAG</button>
+        <button class="tab" data-view="summary">Résumé</button>
+      </nav>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+  <div class="note">
+    ⚠️ Outil de calcul. Ne remplace pas le jugement clinique/forensique. Le document source précise notamment de ne pas
+    spécifier de catégorie de risque pour les femmes (N/A). Pense aussi à documenter les “Evidence” et la qualité de la base d’information.
+  </div>
+
+  <!-- ============ VIEW: VRAG ============ -->
+  <section id="view-vrag" class="view">
+    <div class="grid two" style="margin-top:14px">
+      <div class="card">
+        <h1>VRAG</h1>
+        <p>Somme des items 1–11 + poids item 12 (max entre PCL et CATS).</p>
+
+        <h3>Données générales</h3>
+        <div class="row two">
+          <div>
+            <label>Sexe (info utile pour la catégorie)</label>
+            <select id="sex">
+              <option value="male">Homme</option>
+              <option value="female">Femme (catégorie N/A)</option>
+            </select>
+          </div>
+          <div>
+            <label>Historique d’infraction sexuelle ? (si oui, scorera aussi SORAG)</label>
+            <select id="hasSexOffense">
+              <option value="no">Non</option>
+              <option value="yes">Oui</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="divider"></div>
+
+        <h3>VRAG items</h3>
+
+        <div class="row two">
+          <div>
+            <label>1. A vécu avec les deux parents biologiques jusqu’à 16 ans</label>
+            <select id="vrag1">
+              <option value="-2">Oui (-2)</option>
+              <option value="3">Non (+3)</option>
+            </select>
+            <label class="small">Evidence</label>
+            <textarea id="vrag1_ev" placeholder="Source, éléments, fiabilité..."></textarea>
+          </div>
+
+          <div>
+            <label>2. Inadaptation école primaire</label>
+            <select id="vrag2">
+              <option value="-1">Aucun problème (-1)</option>
+              <option value="2">Léger/Modéré (+2)</option>
+              <option value="5">Sévère (+5)</option>
+            </select>
+            <label class="small">Evidence</label>
+            <textarea id="vrag2_ev"></textarea>
+          </div>
+        </div>
+
+        <div class="row">
+          <div>
+            <label>3. Historique de problèmes d’alcool (cocher ce qui est présent)</label>
+            <div class="checkboxes">
+              <div class="ck"><input type="checkbox" id="alc_parent" /> <div><b>Alcoolisme parental</b><div class="muted">VRAG item 3</div></div></div>
+              <div class="ck"><input type="checkbox" id="alc_teen" /> <div><b>Problème alcool adolescence</b></div></div>
+              <div class="ck"><input type="checkbox" id="alc_adult" /> <div><b>Problème alcool adulte</b></div></div>
+              <div class="ck"><input type="checkbox" id="alc_prior" /> <div><b>Alcool impliqué dans offense précédente</b></div></div>
+              <div class="ck"><input type="checkbox" id="alc_index" /> <div><b>Alcool impliqué dans offense index</b></div></div>
+            </div>
+            <div class="inline" style="margin-top:8px">
+              <span class="chip">Score item 3: <b id="vrag3_score">0</b></span>
+              <span class="chip">Cases cochées: <b id="alc_count">0</b></span>
+            </div>
+            <label class="small">Evidence</label>
+            <textarea id="vrag3_ev"></textarea>
+          </div>
+        </div>
+
+        <div class="row two">
+          <div>
+            <label>4. Statut marital (au moment de l’index ou avant)</label>
+            <select id="vrag4">
+              <option value="-2">Déjà marié / union ≥6 mois (-2)</option>
+              <option value="1">Jamais marié (+1)</option>
+            </select>
+            <label class="small">Evidence</label>
+            <textarea id="vrag4_ev"></textarea>
+          </div>
+
+          <div>
+            <label>5. Score criminalité non-violente (Cormier-Lang) → catégorie VRAG</label>
+            <select id="vrag5">
+              <option value="-2">Score 0 (-2)</option>
+              <option value="0">Score 1 ou 2 (0)</option>
+              <option value="3">Score ≥3 (+3)</option>
+            </select>
+            <div class="small">Astuce: utilise le calculateur “Cormier-Lang non-violent” plus bas.</div>
+          </div>
+        </div>
+
+        <div class="row two">
+          <div>
+            <label>6. Échec de libération conditionnelle antérieure</label>
+            <select id="vrag6">
+              <option value="0">Non (0)</option>
+              <option value="3">Oui (+3)</option>
+            </select>
+            <label class="small">Evidence</label>
+            <textarea id="vrag6_ev"></textarea>
+          </div>
+
+          <div>
+            <label>7. Âge lors de l’offense index</label>
+            <div class="row two" style="margin:0">
+              <div>
+                <label class="small">Date offense index</label>
+                <input type="date" id="indexDate_vrag" />
+              </div>
+              <div>
+                <label class="small">Date de naissance</label>
+                <input type="date" id="dob_vrag" />
+              </div>
+            </div>
+            <div class="inline" style="margin-top:8px">
+              <span class="chip">Âge calculé: <b id="age_vrag">?</b></span>
+              <span class="chip">Score item 7: <b id="vrag7_score">0</b></span>
+            </div>
+          </div>
+        </div>
+
+        <div class="row two">
+          <div>
+            <label>8. Blessures victime (index, la plus grave)</label>
+            <select id="vrag8">
+              <option value="-2">Décès (-2)</option>
+              <option value="0">Hospitalisé (0)</option>
+              <option value="1">Traité et libéré (+1)</option>
+              <option value="2">Aucune/légère (incl. pas de victime) (+2)</option>
+            </select>
+            <label class="small">Evidence</label>
+            <textarea id="vrag8_ev"></textarea>
+          </div>
+
+          <div>
+            <label>9. Victime féminine (index)</label>
+            <select id="vrag9">
+              <option value="-1">Oui (-1)</option>
+              <option value="1">Non (incl. pas de victime) (+1)</option>
+            </select>
+            <label class="small">Evidence</label>
+            <textarea id="vrag9_ev"></textarea>
+          </div>
+        </div>
+
+        <div class="row two">
+          <div>
+            <label>10. Trouble de personnalité (DSM)</label>
+            <select id="vrag10">
+              <option value="-2">Non (-2)</option>
+              <option value="3">Oui (+3)</option>
+            </select>
+            <label class="small">Evidence</label>
+            <textarea id="vrag10_ev"></textarea>
+          </div>
+
+          <div>
+            <label>11. Schizophrénie (DSM)</label>
+            <select id="vrag11">
+              <option value="-3">Oui (-3)</option>
+              <option value="1">Non (+1)</option>
+            </select>
+            <label class="small">Evidence</label>
+            <textarea id="vrag11_ev"></textarea>
+          </div>
+        </div>
+
+        <div class="divider"></div>
+
+        <h3>CATS (utilisé si pas de PCL, et aussi pour SORAG)</h3>
+        <p>Le CATS total (items 1–8) sert à déterminer une pondération alternative (12b/14b).</p>
+        <div class="row two">
+          <div>
+            <label>CATS 1. Inadaptation école primaire</label>
+            <select id="cats1">
+              <option value="0">0</option>
+              <option value="1">1</option>
+            </select>
+          </div>
+          <div>
+            <label>CATS 2. Problème alcool adolescence</label>
+            <select id="cats2">
+              <option value="0">0</option>
+              <option value="1">1</option>
+            </select>
+          </div>
+        </div>
+        <div class="row two">
+          <div>
+            <label>CATS 3. Agression enfance</label>
+            <select id="cats3">
+              <option value="0">0</option>
+              <option value="1">1</option>
+            </select>
+          </div>
+          <div>
+            <label>CATS 4. &gt; 3 symptômes trouble des conduites (DSM)</label>
+            <select id="cats4">
+              <option value="0">0</option>
+              <option value="1">1</option>
+            </select>
+          </div>
+        </div>
+        <div class="row two">
+          <div>
+            <label>CATS 5. Suspension/expulsion scolaire</label>
+            <select id="cats5">
+              <option value="0">0</option>
+              <option value="1">1</option>
+            </select>
+          </div>
+          <div>
+            <label>CATS 6. Arrestation avant 16 ans</label>
+            <select id="cats6">
+              <option value="0">0</option>
+              <option value="1">1</option>
+            </select>
+          </div>
+        </div>
+        <div class="row two">
+          <div>
+            <label>CATS 7. Alcoolisme parental</label>
+            <select id="cats7">
+              <option value="0">0</option>
+              <option value="1">1</option>
+            </select>
+          </div>
+          <div>
+            <label>CATS 8. Deux parents biologiques jusqu’à 16 ans (sauf décès)</label>
+            <select id="cats8">
+              <option value="0">Oui (0)</option>
+              <option value="1">Non (1)</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="inline">
+          <span class="chip">CATS total: <b id="cats_total">0</b></span>
+          <span class="chip">Pondération CATS (12b/14b): <b id="cats_weight">-3</b></span>
+        </div>
+
+        <div class="divider"></div>
+
+        <h3>VRAG item 12 (PCL ou CATS, on garde le max)</h3>
+        <div class="row two">
+          <div>
+            <label>Score PCL (laisser vide si non dispo)</label>
+            <input type="number" id="pcl" min="0" max="40" step="1" placeholder="Ex: 28" />
+            <div class="inline" style="margin-top:8px">
+              <span class="chip">Pondération PCL: <b id="pcl_weight">0</b></span>
+            </div>
+          </div>
+          <div>
+            <label>Pondération retenue (max PCL vs CATS)</label>
+            <div class="metric">
+              <div class="big" id="vrag12_weight">0</div>
+              <div class="sub">C’est cette valeur qui s’ajoute à la somme des items 1–11</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="divider"></div>
+
+        <h3>Cormier-Lang non-violent (calculateur)</h3>
+        <p>Entre les arrestations/charges et le système calcule le total. Tu peux ensuite choisir la catégorie VRAG item 5.</p>
+
+        <div class="row three">
+          <div>
+            <label>Robbery (bank/store) ×7</label>
+            <input type="number" min="0" step="1" id="nv_rob_bank" value="0">
+          </div>
+          <div>
+            <label>Robbery (purse snatching) ×3</label>
+            <input type="number" min="0" step="1" id="nv_rob_purse" value="0">
+          </div>
+          <div>
+            <label>Arson (church/house/barn) ×5</label>
+            <input type="number" min="0" step="1" id="nv_arson_big" value="0">
+          </div>
+        </div>
+
+        <div class="row three">
+          <div>
+            <label>Arson (garbage can) ×1</label>
+            <input type="number" min="0" step="1" id="nv_arson_small" value="0">
+          </div>
+          <div>
+            <label>Threat w/ weapon ×3</label>
+            <input type="number" min="0" step="1" id="nv_threat_weapon" value="0">
+          </div>
+          <div>
+            <label>Threatening ×2</label>
+            <input type="number" min="0" step="1" id="nv_threat" value="0">
+          </div>
+        </div>
+
+        <div class="row three">
+          <div>
+            <label>Theft over* ×5</label>
+            <input type="number" min="0" step="1" id="nv_theft_over" value="0">
+          </div>
+          <div>
+            <label>Mischief over* ×5</label>
+            <input type="number" min="0" step="1" id="nv_prop_over" value="0">
+          </div>
+          <div>
+            <label>Break & enter + indictable ×2</label>
+            <input type="number" min="0" step="1" id="nv_bne_indict" value="0">
+          </div>
+        </div>
+
+        <div class="row three">
+          <div>
+            <label>Theft under* ×1</label>
+            <input type="number" min="0" step="1" id="nv_theft_under" value="0">
+          </div>
+          <div>
+            <label>Mischief under* ×1</label>
+            <input type="number" min="0" step="1" id="nv_prop_under" value="0">
+          </div>
+          <div>
+            <label>Break & enter ×1</label>
+            <input type="number" min="0" step="1" id="nv_bne" value="0">
+          </div>
+        </div>
+
+        <div class="row three">
+          <div>
+            <label>Fraud (extortion/embezzlement) ×5</label>
+            <input type="number" min="0" step="1" id="nv_fraud_big" value="0">
+          </div>
+          <div>
+            <label>Fraud (forged check/impersonation) ×1</label>
+            <input type="number" min="0" step="1" id="nv_fraud_small" value="0">
+          </div>
+          <div>
+            <label>Weapon restricted possession ×1</label>
+            <input type="number" min="0" step="1" id="nv_weapon_poss" value="0">
+          </div>
+        </div>
+
+        <div class="row three">
+          <div>
+            <label>Prostitution avails ×1</label>
+            <input type="number" min="0" step="1" id="nv_prostitution" value="0">
+          </div>
+          <div>
+            <label>Narcotics trafficking ×1</label>
+            <input type="number" min="0" step="1" id="nv_drugs" value="0">
+          </div>
+          <div>
+            <label>Impaired driving ×1</label>
+            <input type="number" min="0" step="1" id="nv_dwi" value="0">
+          </div>
+        </div>
+
+        <div class="row three">
+          <div>
+            <label>Obstructing officer ×1</label>
+            <input type="number" min="0" step="1" id="nv_obstruct" value="0">
+          </div>
+          <div>
+            <label>Causing disturbance ×1</label>
+            <input type="number" min="0" step="1" id="nv_disturb" value="0">
+          </div>
+          <div>
+            <label>Disguise intent ×1</label>
+            <input type="number" min="0" step="1" id="nv_disguise" value="0">
+          </div>
+        </div>
+
+        <div class="row two">
+          <div>
+            <label>Indecent exposure ×2</label>
+            <input type="number" min="0" step="1" id="nv_indecent" value="0">
+          </div>
+          <div class="metric">
+            <div class="sub">Cormier-Lang non-violent total</div>
+            <div class="big" id="nv_total">0</div>
+            <div class="sub">Catégorie VRAG item 5: 0 / 1–2 / ≥3</div>
+          </div>
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="inline">
+          <button class="btn primary" id="saveBtn">Enregistrer</button>
+          <button class="btn" id="resetBtn">Réinitialiser</button>
+          <button class="btn" id="exportBtn">Exporter JSON</button>
+          <span class="small">Les données sont stockées localement dans le navigateur.</span>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Sortie VRAG</h2>
+        <div class="row">
+          <div class="metric">
+            <div class="sub">Score total VRAG</div>
+            <div class="big" id="vrag_total">0</div>
+            <div class="sub">Items 1–11 + poids item 12</div>
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="metric">
+            <div class="sub">Catégorie (VRAG)</div>
+            <div class="big" id="vrag_cat">Medium</div>
+            <div class="sub" id="vrag_cat_note"></div>
+          </div>
+        </div>
+
+        <div class="divider"></div>
+
+        <h3>Rappels de seuils (table)</h3>
+        <table class="table">
+          <thead>
+            <tr><th>Score VRAG</th><th>Catégorie</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>≤ -8</td><td><span class="badge b-low">Low</span></td></tr>
+            <tr><td>-7 à 13</td><td><span class="badge b-med">Medium</span></td></tr>
+            <tr><td>≥ 14</td><td><span class="badge b-high">High</span></td></tr>
+          </tbody>
+        </table>
+        <div class="foot">Près des seuils, le guide suggère une catégorie en “range” (ex: -10/-9/-8 → “Low to Medium”).</div>
+
+        <div class="divider"></div>
+
+        <h3>Conseil pratique</h3>
+        <p class="muted">
+          Tu peux remplir “Evidence” pour chaque item. Si tes infos sont inconsistantes, le document recommande de scorer en range (min/max).
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ VIEW: SORAG ============ -->
+  <section id="view-sorag" class="view hidden">
+    <div class="grid two" style="margin-top:14px">
+      <div class="card">
+        <h1>SORAG</h1>
+        <p>À scorer si historique sexuel. Somme items 1–13 + poids item 14 (max PCL/CATS).</p>
+
+        <div class="note">
+          Si “Historique d’infraction sexuelle” = Non, tu peux quand même utiliser le formulaire, mais en pratique le guide dit de ne pas scorer le SORAG.
+        </div>
+
+        <h3>SORAG items</h3>
+
+        <div class="row two">
+          <div>
+            <label>1. Deux parents biologiques jusqu’à 16 ans</label>
+            <select id="sorag1">
+              <option value="-2">Oui (-2)</option>
+              <option value="3">Non (+3)</option>
+            </select>
+          </div>
+          <div>
+            <label>2. Inadaptation école primaire</label>
+            <select id="sorag2">
+              <option value="-1">Aucun problème (-1)</option>
+              <option value="2">Léger/Modéré (+2)</option>
+              <option value="5">Sévère (+5)</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="row">
+          <div>
+            <label>3. Problèmes d’alcool (mêmes cases que VRAG)</label>
+            <div class="inline">
+              <span class="chip">Cases cochées (VRAG): <b id="sorag_alc_count">0</b></span>
+              <span class="chip">Score item 3: <b id="sorag3_score">0</b></span>
+            </div>
+          </div>
+        </div>
+
+        <div class="row two">
+          <div>
+            <label>4. Statut marital</label>
+            <select id="sorag4">
+              <option value="-2">Déjà marié / union ≥6 mois (-2)</option>
+              <option value="1">Jamais marié (+1)</option>
+            </select>
+          </div>
+          <div>
+            <label>5. Score non-violent (Cormier-Lang) → catégorie</label>
+            <select id="sorag5">
+              <option value="-2">Score 0 (-2)</option>
+              <option value="0">Score 1 ou 2 (0)</option>
+              <option value="3">Score ≥3 (+3)</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="row two">
+          <div>
+            <label>6. Score violent (Cormier-Lang) → catégorie</label>
+            <select id="sorag6">
+              <option value="-2">Score 0 (-2)</option>
+              <option value="0">Score 1 ou 2 (0)</option>
+              <option value="6">Score ≥3 (+6)</option>
+            </select>
+            <div class="small">Astuce: utilise le calculateur “Cormier-Lang violent” plus bas.</div>
+          </div>
+
+          <div>
+            <label>7. Condamnations sexuelles antérieures</label>
+            <select id="sorag7">
+              <option value="-1">0 (-1)</option>
+              <option value="1">1 ou 2 (+1)</option>
+              <option value="5">3+ (+5)</option>
+            </select>
+            <label class="small">Evidence</label>
+            <textarea id="sorag7_ev"></textarea>
+          </div>
+        </div>
+
+        <div class="row two">
+          <div>
+            <label>8. Offenses sexuelles uniquement contre filles &lt;14</label>
+            <select id="sorag8">
+              <option value="0">Oui (0)</option>
+              <option value="4">Non (+4)</option>
+            </select>
+            <label class="small">Evidence</label>
+            <textarea id="sorag8_ev"></textarea>
+          </div>
+
+          <div>
+            <label>9. Échec libération conditionnelle antérieure</label>
+            <select id="sorag9">
+              <option value="0">Non (0)</option>
+              <option value="3">Oui (+3)</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="row two">
+          <div>
+            <label>10. Âge lors de l’index</label>
+            <div class="row two" style="margin:0">
+              <div>
+                <label class="small">Date offense index</label>
+                <input type="date" id="indexDate_sorag" />
+              </div>
+              <div>
+                <label class="small">Date de naissance</label>
+                <input type="date" id="dob_sorag" />
+              </div>
+            </div>
+            <div class="inline" style="margin-top:8px">
+              <span class="chip">Âge: <b id="age_sorag">?</b></span>
+              <span class="chip">Score item 10: <b id="sorag10_score">0</b></span>
+            </div>
+          </div>
+
+          <div>
+            <label>11. Trouble de personnalité (DSM)</label>
+            <select id="sorag11">
+              <option value="-2">Non (-2)</option>
+              <option value="3">Oui (+3)</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="row two">
+          <div>
+            <label>12. Schizophrénie (DSM)</label>
+            <select id="sorag12">
+              <option value="-3">Oui (-3)</option>
+              <option value="1">Non (+1)</option>
+            </select>
+          </div>
+
+          <div>
+            <label>13. Phallométrie</label>
+            <select id="sorag13">
+              <option value="-1">Tous tests non-déviants (-1)</option>
+              <option value="0">Pas de résultats (0)</option>
+              <option value="1">Au moins un test déviant (+1)</option>
+            </select>
+            <label class="small">Evidence</label>
+            <textarea id="sorag13_ev"></textarea>
+          </div>
+        </div>
+
+        <div class="divider"></div>
+
+        <h3>SORAG item 14 (PCL ou CATS, max)</h3>
+        <p class="muted">Même PCL et même CATS que VRAG. La pondération retenue est recalculée automatiquement.</p>
+        <div class="row two">
+          <div class="metric">
+            <div class="sub">Pondération PCL</div>
+            <div class="big" id="pcl_weight_sorag">0</div>
+            <div class="sub">Selon la catégorie du score PCL</div>
+          </div>
+          <div class="metric">
+            <div class="sub">Pondération retenue item 14</div>
+            <div class="big" id="sorag14_weight">0</div>
+            <div class="sub">max(PCL, CATS)</div>
+          </div>
+        </div>
+
+        <div class="divider"></div>
+
+        <h3>Cormier-Lang violent (calculateur)</h3>
+        <p>Calcule le total violent. Ensuite choisis la catégorie item 6 (0 / 1–2 / ≥3).</p>
+
+        <div class="row three">
+          <div><label>Homicide ×28</label><input type="number" min="0" step="1" id="v_homicide" value="0"></div>
+          <div><label>Attempted murder / intent to wound ×7</label><input type="number" min="0" step="1" id="v_attempt_murder" value="0"></div>
+          <div><label>Kidnapping/abduction ×6</label><input type="number" min="0" step="1" id="v_kidnap" value="0"></div>
+        </div>
+        <div class="row three">
+          <div><label>Aggravated assault/choking ×6</label><input type="number" min="0" step="1" id="v_aggrav_assault" value="0"></div>
+          <div><label>Assault bodily harm ×5</label><input type="number" min="0" step="1" id="v_assault_bh" value="0"></div>
+          <div><label>Assault w/ weapon ×3</label><input type="number" min="0" step="1" id="v_assault_weapon" value="0"></div>
+        </div>
+        <div class="row three">
+          <div><label>Assault / assault officer ×2</label><input type="number" min="0" step="1" id="v_assault" value="0"></div>
+          <div><label>Aggravated sexual assault / w BH ×15</label><input type="number" min="0" step="1" id="v_aggr_sex_assault" value="0"></div>
+          <div><label>Sex assault w/ weapon ×12</label><input type="number" min="0" step="1" id="v_sex_weapon" value="0"></div>
+        </div>
+        <div class="row three">
+          <div><label>Sex assault penetration ×10</label><input type="number" min="0" step="1" id="v_sex_pen" value="0"></div>
+          <div><label>Sex assault (attempted/indecent) ×6</label><input type="number" min="0" step="1" id="v_sex_attempt" value="0"></div>
+          <div><label>Gross indecency (fellatio/cunnilingus on victim) ×6</label><input type="number" min="0" step="1" id="v_gross_indec" value="0"></div>
+        </div>
+        <div class="row three">
+          <div><label>Sex interference / invitation touching ×2</label><input type="number" min="0" step="1" id="v_sex_touch" value="0"></div>
+          <div><label>Armed robbery (bank/store) ×8</label><input type="number" min="0" step="1" id="v_arm_rob_bank" value="0"></div>
+          <div><label>Robbery with violence ×5</label><input type="number" min="0" step="1" id="v_rob_viol" value="0"></div>
+        </div>
+        <div class="row two">
+          <div><label>Armed robbery (not bank/store) ×4</label><input type="number" min="0" step="1" id="v_arm_rob_other" value="0"></div>
+          <div class="metric">
+            <div class="sub">Cormier-Lang violent total</div>
+            <div class="big" id="v_total">0</div>
+            <div class="sub">Catégorie SORAG item 6: 0 / 1–2 / ≥3</div>
+          </div>
+        </div>
+
+        <div class="inline">
+          <button class="btn primary" onclick="goto('summary')">Aller au résumé</button>
+          <span class="small">Le résumé affiche VRAG + SORAG ensemble.</span>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Sortie SORAG</h2>
+        <div class="row">
+          <div class="metric">
+            <div class="sub">Score total SORAG</div>
+            <div class="big" id="sorag_total">0</div>
+            <div class="sub">Items 1–13 + poids item 14</div>
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="metric">
+            <div class="sub">Catégorie (SORAG)</div>
+            <div class="big" id="sorag_cat">Medium</div>
+            <div class="sub" id="sorag_cat_note"></div>
+          </div>
+        </div>
+
+        <div class="divider"></div>
+
+        <h3>Seuils (table)</h3>
+        <table class="table">
+          <thead>
+            <tr><th>Score SORAG</th><th>Catégorie</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>≤ 2</td><td><span class="badge b-low">Low</span></td></tr>
+            <tr><td>3 à 19</td><td><span class="badge b-med">Medium</span></td></tr>
+            <tr><td>≥ 20</td><td><span class="badge b-high">High</span></td></tr>
+          </tbody>
+        </table>
+        <div class="foot">Le guide recommande “Medium to High” pour 17–19 (haut de la zone Medium).</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ VIEW: SUMMARY ============ -->
+  <section id="view-summary" class="view hidden">
+    <div class="grid two" style="margin-top:14px">
+      <div class="card">
+        <h1>Résumé des scores</h1>
+        <p>Vue regroupée. Tu peux exporter un JSON pour archiver tes résultats.</p>
+
+        <div class="row two">
+          <div class="metric">
+            <div class="sub">VRAG total</div>
+            <div class="big" id="sum_vrag_total">0</div>
+            <div class="sub">Catégorie: <b id="sum_vrag_cat">Medium</b></div>
+          </div>
+
+          <div class="metric">
+            <div class="sub">SORAG total</div>
+            <div class="big" id="sum_sorag_total">0</div>
+            <div class="sub">Catégorie: <b id="sum_sorag_cat">Medium</b></div>
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="metric">
+            <div class="sub">Rappels</div>
+            <div class="small">
+              <ul>
+                <li>Si sexe = Femme, le document indique de mettre la catégorie à <b>N/A</b>.</li>
+                <li>Si pas d’historique sexuel, le guide recommande de ne pas scorer le SORAG.</li>
+                <li>Près des seuils, afficher une catégorie en “range” peut être plus fidèle.</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="inline">
+          <button class="btn" onclick="goto('vrag')">Retour VRAG</button>
+          <button class="btn" onclick="goto('sorag')">Retour SORAG</button>
+          <button class="btn primary" id="exportBtn2">Exporter JSON</button>
+        </div>
+
+        <div class="foot">
+          Tout est calculé côté client, rien n’est envoyé sur un serveur.
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Aperçu technique</h2>
+        <p class="muted">Persistance: localStorage. Navigation: vues internes. Export: téléchargement d’un JSON.</p>
+
+        <table class="table">
+          <thead>
+            <tr><th>Élément</th><th>Valeur</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>CATS total</td><td id="sum_cats_total">0</td></tr>
+            <tr><td>Pondération CATS</td><td id="sum_cats_weight">-3</td></tr>
+            <tr><td>Pondération PCL</td><td id="sum_pcl_weight">0</td></tr>
+            <tr><td>Pondération retenue (VRAG item 12 / SORAG item 14)</td><td id="sum_final_weight">0</td></tr>
+            <tr><td>Cormier-Lang non-violent total</td><td id="sum_nv_total">0</td></tr>
+            <tr><td>Cormier-Lang violent total</td><td id="sum_v_total">0</td></tr>
+          </tbody>
+        </table>
+
+        <div class="divider"></div>
+
+        <p class="muted">
+          Si tu veux ensuite une version “multi-pages” (vrag.html, sorag.html, summary.html) avec un JS partagé, je peux te donner l’arborescence.
+          Mais cette version “single file” est souvent la plus simple pour GitHub Pages.
+        </p>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<script>
+/* ----------------------------
+   Helpers
+---------------------------- */
+const $ = (id) => document.getElementById(id);
+const views = ["vrag","sorag","summary"];
+
+function goto(view){
+  for(const v of views){
+    $("view-"+v).classList.toggle("hidden", v !== view);
+    document.querySelector(`button.tab[data-view="${v}"]`).classList.toggle("active", v === view);
+  }
+  localStorage.setItem("vrs_view", view);
+  recomputeAll();
+}
+
+function num(v){ return Number(v ?? 0) || 0; }
+
+function yearsBetween(dob, indexDate){
+  if(!dob || !indexDate) return null;
+  const d1 = new Date(dob);
+  const d2 = new Date(indexDate);
+  if(Number.isNaN(d1.getTime()) || Number.isNaN(d2.getTime())) return null;
+  let age = d2.getFullYear() - d1.getFullYear();
+  const m = d2.getMonth() - d1.getMonth();
+  if(m < 0 || (m === 0 && d2.getDate() < d1.getDate())) age--;
+  return age;
+}
+
+function weightFromPCL(pcl){
+  if(pcl === null || pcl === undefined || pcl === "") return null;
+  const x = Number(pcl);
+  if(!Number.isFinite(x)) return null;
+  if(x <= 9) return -3;          // 4 or under and 5-9 both -3
+  if(x <= 14) return -1;         // 10-14
+  if(x <= 24) return 0;          // 15-24
+  if(x <= 34) return 4;          // 25-34
+  return 12;                      // 35+
+}
+
+function weightFromCATS(total){
+  if(total <= 1) return -3;
+  if(total <= 3) return 0;
+  if(total === 4) return 2;
+  return 3; // 5+
+}
+
+function vragCategory(score){
+  // Based on the VRAG table: <= -8 Low; -7..13 Medium; >=14 High
+  // Range suggestion: -10..-8 => Low to Medium; 11..13 => Medium to High
+  if(score <= -8){
+    if(score >= -10) return {cat:"Low to Medium", level:"med", note:"Proche du seuil Low/Medium (suggestion de “range”)."};
+    return {cat:"Low", level:"low", note:""};
+  }
+  if(score >= 14){
+    return {cat:"High", level:"high", note:""};
+  }
+  // Medium area
+  if(score >= 11) return {cat:"Medium to High", level:"med", note:"Haut de la zone Medium (suggestion de “range”)."};
+  return {cat:"Medium", level:"med", note:""};
+}
+
+function soragCategory(score){
+  // Based on SORAG table: <=2 Low; 3..19 Medium; >=20 High
+  // Range suggestion: 17..19 => Medium to High
+  if(score <= 2) return {cat:"Low", level:"low", note:""};
+  if(score >= 20) return {cat:"High", level:"high", note:""};
+  if(score >= 17) return {cat:"Medium to High", level:"med", note:"Haut de la zone Medium (suggestion 17–19)."};
+  return {cat:"Medium", level:"med", note:""};
+}
+
+function badgeClass(level){
+  if(level === "low") return "badge b-low";
+  if(level === "high") return "badge b-high";
+  return "badge b-med";
+}
+
+/* ----------------------------
+   Calculators: Cormier-Lang
+---------------------------- */
+const NV_WEIGHTS = {
+  nv_rob_bank:7, nv_rob_purse:3, nv_arson_big:5, nv_arson_small:1,
+  nv_threat_weapon:3, nv_threat:2, nv_theft_over:5, nv_prop_over:5,
+  nv_bne_indict:2, nv_theft_under:1, nv_prop_under:1, nv_bne:1,
+  nv_fraud_big:5, nv_fraud_small:1, nv_weapon_poss:1, nv_prostitution:1,
+  nv_drugs:1, nv_dwi:1, nv_obstruct:1, nv_disturb:1, nv_disguise:1, nv_indecent:2
+};
+
+const V_WEIGHTS = {
+  v_homicide:28, v_attempt_murder:7, v_kidnap:6, v_aggrav_assault:6,
+  v_assault_bh:5, v_assault_weapon:3, v_assault:2,
+  v_aggr_sex_assault:15, v_sex_weapon:12, v_sex_pen:10, v_sex_attempt:6,
+  v_gross_indec:6, v_sex_touch:2, v_arm_rob_bank:8, v_rob_viol:5, v_arm_rob_other:4
+};
+
+function calcWeightedTotal(map){
+  let t = 0;
+  for(const [id,w] of Object.entries(map)){
+    t += num($(id)?.value) * w;
+  }
+  return t;
+}
+
+/* ----------------------------
+   Main recompute
+---------------------------- */
+function recomputeAll(){
+  // Alcohol checkbox count → VRAG item 3 + SORAG item 3
+  const alcIds = ["alc_parent","alc_teen","alc_adult","alc_prior","alc_index"];
+  const alcCount = alcIds.reduce((a,id)=> a + ($ (id).checked ? 1 : 0), 0);
+  $("alc_count").textContent = String(alcCount);
+  $("sorag_alc_count").textContent = String(alcCount);
+
+  let alcScore = -1;
+  if(alcCount === 0) alcScore = -1;
+  else if(alcCount <= 2) alcScore = 0;
+  else if(alcCount === 3) alcScore = 1;
+  else alcScore = 2;
+  $("vrag3_score").textContent = String(alcScore);
+  $("sorag3_score").textContent = String(alcScore);
+
+  // Age scoring (VRAG item 7 / SORAG item 10)
+  function ageToScore(age){
+    if(age === null) return null;
+    if(age >= 39) return -5;
+    if(age >= 34) return -2;
+    if(age >= 28) return -1;
+    if(age === 27) return 0;
+    return 2; // 26 or less
+  }
+
+  const ageV = yearsBetween($("dob_vrag").value, $("indexDate_vrag").value);
+  $("age_vrag").textContent = ageV === null ? "?" : String(ageV);
+  const ageVScore = ageToScore(ageV);
+  $("vrag7_score").textContent = ageVScore === null ? "0" : String(ageVScore);
+
+  const ageS = yearsBetween($("dob_sorag").value, $("indexDate_sorag").value);
+  $("age_sorag").textContent = ageS === null ? "?" : String(ageS);
+  const ageSScore = ageToScore(ageS);
+  $("sorag10_score").textContent = ageSScore === null ? "0" : String(ageSScore);
+
+  // CATS total and weight
+  const catsTotal =
+    num($("cats1").value)+num($("cats2").value)+num($("cats3").value)+num($("cats4").value)+
+    num($("cats5").value)+num($("cats6").value)+num($("cats7").value)+num($("cats8").value);
+  $("cats_total").textContent = String(catsTotal);
+  const catsW = weightFromCATS(catsTotal);
+  $("cats_weight").textContent = String(catsW);
+
+  // PCL weight
+  const pclVal = $("pcl").value;
+  const pclW = weightFromPCL(pclVal);
+  $("pcl_weight").textContent = String(pclW ?? 0);
+  $("pcl_weight_sorag").textContent = String(pclW ?? 0);
+
+  // Final weight (max PCL vs CATS). If no PCL, use CATS.
+  let finalW = catsW;
+  if(pclW !== null) finalW = Math.max(pclW, catsW);
+  $("vrag12_weight").textContent = String(finalW);
+  $("sorag14_weight").textContent = String(finalW);
+
+  // Cormier totals
+  const nvTotal = calcWeightedTotal(NV_WEIGHTS);
+  $("nv_total").textContent = String(nvTotal);
+
+  const vTotal = calcWeightedTotal(V_WEIGHTS);
+  $("v_total").textContent = String(vTotal);
+
+  // VRAG total
+  const vragItems_1_2_4_5_6_8_9_10_11 =
+    num($("vrag1").value) + num($("vrag2").value) + num($("vrag4").value) + num($("vrag5").value) +
+    num($("vrag6").value) + num($("vrag8").value) + num($("vrag9").value) + num($("vrag10").value) +
+    num($("vrag11").value);
+
+  const vrag7 = ageVScore ?? 0;
+  const vragTotal = vragItems_1_2_4_5_6_8_9_10_11 + alcScore + vrag7 + finalW;
+  $("vrag_total").textContent = String(vragTotal);
+
+  // VRAG category with sex rule
+  const sex = $("sex").value;
+  let vragCatObj = vragCategory(vragTotal);
+  if(sex === "female"){
+    $("vrag_cat").innerHTML = `<span class="badge">N/A</span>`;
+    $("vrag_cat_note").textContent = "Le document recommande de ne pas spécifier de catégorie pour les femmes.";
+  }else{
+    $("vrag_cat").innerHTML = `<span class="${badgeClass(vragCatObj.level)}">${vragCatObj.cat}</span>`;
+    $("vrag_cat_note").textContent = vragCatObj.note || "";
+  }
+
+  // SORAG total
+  const soragItems =
+    num($("sorag1").value) + num($("sorag2").value) + alcScore + num($("sorag4").value) + num($("sorag5").value) +
+    num($("sorag6").value) + num($("sorag7").value) + num($("sorag8").value) + num($("sorag9").value) +
+    (ageSScore ?? 0) + num($("sorag11").value) + num($("sorag12").value) + num($("sorag13").value) + finalW;
+
+  $("sorag_total").textContent = String(soragItems);
+
+  // SORAG category
+  let soragCatObj = soragCategory(soragItems);
+  $("sorag_cat").innerHTML = `<span class="${badgeClass(soragCatObj.level)}">${soragCatObj.cat}</span>`;
+  $("sorag_cat_note").textContent = soragCatObj.note || "";
+
+  // Summary sync
+  $("sum_vrag_total").textContent = String(vragTotal);
+  $("sum_sorag_total").textContent = String(soragItems);
+
+  if(sex === "female"){
+    $("sum_vrag_cat").innerHTML = "N/A";
+  }else{
+    $("sum_vrag_cat").innerHTML = vragCatObj.cat;
+  }
+  $("sum_sorag_cat").textContent = soragCatObj.cat;
+
+  $("sum_cats_total").textContent = String(catsTotal);
+  $("sum_cats_weight").textContent = String(catsW);
+  $("sum_pcl_weight").textContent = String(pclW ?? 0);
+  $("sum_final_weight").textContent = String(finalW);
+  $("sum_nv_total").textContent = String(nvTotal);
+  $("sum_v_total").textContent = String(vTotal);
+
+  // Auto-suggest item 5 / item 6 categories from totals (optional helper)
+  // Nonviolent: 0 => -2, 1-2 => 0, >=3 => +3
+  // Here nvTotal is the Cormier-Lang total, not the category count. The guide uses score 0/1-2/3+ for VRAG/SORAG items.
+  // We keep manual select because “score 0/1-2/3+” refers to the CL total itself, but in practice CL totals can be big.
+  // If you prefer an automatic mapping, you can treat: total==0 => 0 ; total in [1,2] => 1-2 ; total>=3 => 3+.
+}
+
+function collectState(){
+  const ids = Array.from(document.querySelectorAll("input,select,textarea")).map(el=>el.id).filter(Boolean);
+  const state = {};
+  for(const id of ids){
+    const el = $(id);
+    if(!el) continue;
+    if(el.type === "checkbox") state[id] = el.checked;
+    else state[id] = el.value;
+  }
+  return state;
+}
+
+function applyState(state){
+  if(!state) return;
+  for(const [id,val] of Object.entries(state)){
+    const el = $(id);
+    if(!el) continue;
+    if(el.type === "checkbox") el.checked = Boolean(val);
+    else el.value = val;
+  }
+}
+
+function save(){
+  localStorage.setItem("vrs_state", JSON.stringify(collectState()));
+}
+
+function load(){
+  const raw = localStorage.getItem("vrs_state");
+  if(!raw) return;
+  try{ applyState(JSON.parse(raw)); }catch(e){}
+}
+
+function resetAll(){
+  localStorage.removeItem("vrs_state");
+  location.reload();
+}
+
+function downloadJSON(){
+  recomputeAll();
+  const payload = {
+    meta: {
+      savedAt: new Date().toISOString(),
+      view: localStorage.getItem("vrs_view") || "vrag"
+    },
+    state: collectState(),
+    computed: {
+      vrag_total: $("vrag_total").textContent,
+      sorag_total: $("sorag_total").textContent,
+      cats_total: $("cats_total").textContent,
+      nv_total: $("nv_total").textContent,
+      v_total: $("v_total").textContent
+    }
+  };
+  const blob = new Blob([JSON.stringify(payload, null, 2)], {type:"application/json"});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "vrag_sorag_resultats.json";
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+}
+
+/* ----------------------------
+   Events
+---------------------------- */
+document.querySelectorAll("button.tab").forEach(btn=>{
+  btn.addEventListener("click", ()=> goto(btn.dataset.view));
+});
+
+document.addEventListener("input", (e)=>{
+  if(e.target && (e.target.matches("input,select,textarea"))){
+    recomputeAll();
+    save();
+  }
+});
+
+$("saveBtn").addEventListener("click", ()=>{ save(); alert("Enregistré ✅"); });
+$("resetBtn").addEventListener("click", resetAll);
+$("exportBtn").addEventListener("click", downloadJSON);
+$("exportBtn2").addEventListener("click", downloadJSON);
+
+/* ----------------------------
+   Init
+---------------------------- */
+load();
+const lastView = localStorage.getItem("vrs_view") || "vrag";
+goto(lastView);
+recomputeAll();
+</script>
+</body>
+</html>
